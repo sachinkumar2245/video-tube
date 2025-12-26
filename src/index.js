@@ -9,7 +9,7 @@ dotenv.config({ //its used to config where my variables are in the file
 const PORT = process.env.PORT || 8001;
 
 app.get("/", (req, res) => {
-    res.send("Hello World")
+    res.send("Welcome to the API server of video tube application");
 });
 
 connectDB()
