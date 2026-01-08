@@ -22,12 +22,13 @@ app.use(cookieParser()); //using this library now I'm able to read the cookies v
 import healthcheckRouter from './routes/healthcheck.routes.js';
 import userRouters from './routes/user.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
-
+import videoRouters from './routes/video.routes.js';
 
 
 //routes 
 app.use("/api/v1", healthcheckRouter);
-app.use("/api/v1/users", userRouters);
+app.use("/api/v1/user", userRouters);
+app.use("/api/v1/video", videoRouters);
 
 //error handlers
 app.use(errorHandler);

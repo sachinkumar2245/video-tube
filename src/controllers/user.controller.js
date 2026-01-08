@@ -7,6 +7,12 @@ import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
+//global variables 
+
+const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production"
+   }
 
 //here we generate acess and refresh roken
 
@@ -28,7 +34,7 @@ const generateAcessAndRefreshToken = async (userId) => {
         throw new ApiError(500, "Something went wrong while generating acess and refresh token!");
     }
 }
-
+//register user route controller
 const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, username, password } = req.body
 
@@ -51,12 +57,17 @@ const registerUser = asyncHandler(async (req, res) => {
     if (existedUser) {
         throw new ApiError(409, "User with email or username already exists");
     }
-
-    const avatarLocalPath = req.files?.avatar?.[0]?.path;
-    const coverLocalPath = req.files?.coverImage?.[0]?.path;
+    console.log("Files in req", req.files);
+    const avatarLocalPath = req.files?.avatar[0]?.path;
+    console.log("Avatar local path", avatarLocalPath);
+    const coverLocalPath = req.files?.coverImage[0]?.path;
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is missing");
+    };
+
+    if (!coverLocalPath) {
+        throw new ApiError(400, "Cover image file is missing");
     };
 
     //business logic
@@ -76,7 +87,7 @@ const registerUser = asyncHandler(async (req, res) => {
         console.log("Uploaded avatar", avatar);
 
     } catch (error) {
-        console.log("Error uploading avatar", error);
+        console.log("Error uploading avatar", error.message);
         throw new ApiError(500, "Failed to upload avatar");
 
 
@@ -141,8 +152,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     //validation
 
-    if (!email) {
-        throw new ApiError(400, "Email is required!");
+    if (!email || !username) {
+        throw new ApiError(400, "Email or username is required!");
     }
 
     const user = await User.findOne({
@@ -170,12 +181,6 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, "User not logged In")
     }
 
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV = "production",
-    }
-
-
     return res
         .status(200)
         .cookie("acessToken", acessToken, options)
@@ -202,10 +207,6 @@ const logoutUser = asyncHandler(async (req, res) => {
         }
     )
 
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production"
-    }
 
     return res
         .status(200)
@@ -239,11 +240,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         if (incomingRefreshToken !== user?.refreshToken) {
             throw new ApiError(401, "Invalid refresh token");
-        }
-
-        const options = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production"
         }
 
         const { acessToken, refreshToken: newRefreshToken } = await generateAcessAndRefreshToken(user._id);

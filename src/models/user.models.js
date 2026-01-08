@@ -29,6 +29,17 @@ const userSchema = new Schema(
             index: true
         },
 
+        role: {
+            type: String,
+            enum: ["Admin", "User"],
+            default: "User"
+        },
+
+        isChannel : {
+            type: Boolean,
+            default: false
+        },
+
         avatar: {
             type: String, //cloudinary URL
             required: true
@@ -67,7 +78,7 @@ userSchema.pre("save", async function (next) { //all these middlewares need a pa
 
     if (!this.isModified("password")) return next(); //classic function has the acess of this except arrow function
 
-    this.password = await bcrypt.hash(this.password, 10); //here we are encrypting the password using bcrypt js
+    this.password = await bcrypt.hash(this.password, 12); //here we are encrypting the password using bcrypt js
 
     next();
 });
@@ -110,7 +121,6 @@ userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,
-            
         },
         
         process.env.REFRESH_TOKEN_SECRET,
