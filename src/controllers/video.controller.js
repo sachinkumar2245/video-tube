@@ -21,22 +21,72 @@
 // 19. getCommentReplies
 // 20. deleteReply
 
-import {asyncHandler} from "../utils/asyncHandler.js";
-import { User } from "../models/user.models.js";
-import {ApiResponse} from "../utils/ApiResponse.js";
-import {ApiError} from "../utils/ApiError.js"
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js"
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import { Video } from "../models/video.models.js"
 
-export const uploadVideo = asyncHandler( async (req, res) => {
+export const uploadVideo = asyncHandler(async (req, res) => {
+    //here i'll destruct the input data and store it in the video document in the mongooose
+    const {title, description} = req.body
+
+    //method to have the local path of the individual path files using multer
     const videoLocalPath = req.files?.videoFile[0]?.path;
-    if (!videoLocalPath) {
-        throw new ApiError(400, "Video file is missing");
+    const thumbnailLocalPath = req.files?.thumbnailFile[0]?.path;
+
+    if (!(videoLocalPath && thumbnailLocalPath)) {
+        throw new ApiError(400, "Video file and thumbnail are missing");
     }
 
-    const video = await uploadOnCloudinary(videoLocalPath);
-    if (!video) {
-        throw new ApiError(500, "Failed to upload video");
+    let video;
+    try {
+      
+        video = await uploadOnCloudinary(videoLocalPath)
+
+        
+    } catch (error) {
+        console.log(error.message);
+        throw new ApiError(500, "Unable to upload video");
+        
+    }
+
+
+    let thumbnail;
+    try {
+      thumbnail = await uploadOnCloudinary(thumbnailLocalPath)
+    } catch (error) {
+        console.log(error.message)
+        throw new ApiError(500, "Unable to upload thumbnail")
+    }
+
+    try {
+        const videoSavedinDoc = await Video.create({
+            videoFile: video.url,
+            thumbnail: thumbnail.url,
+            title,
+            description,
+            views,
+            duration: video.duration || 0,
+            isPublished: true,
+            owner: req.user._id 
+        })
+
+        return res.status(200).json(new ApiResponse(200, videoSavedinDoc, "Video uploaded successfully"));
+    } catch (error) {
+        console.log(error.message, "error uploading videos")
+
+        if(video) {
+            await deleteFromCloudinary(video.public_id)
+        }
+
+        if(thumbnail){
+            await deleteFromCloudinary(thumbnail.public_id)
+        }
+
+        throw new ApiError(500, "something went wrong while uploading the video and videos were deleted")
     }
 
     res.status(200).json(new ApiResponse(200, video, "Video uploaded successfully"));
+
 })

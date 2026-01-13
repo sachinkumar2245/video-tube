@@ -7,9 +7,13 @@ const router = Router();
 
 router.route("/upload").post(
     verifyJWT,
-    upload.single([
+    upload.fields([
         {
             name: "videoFile",
+            maxCount: 1
+        },
+        {
+            name: "thumbnailFile",
             maxCount: 1
         }
     ]),
