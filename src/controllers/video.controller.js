@@ -62,8 +62,8 @@ export const uploadVideo = asyncHandler(async (req, res) => {
 
     try {
         const videoSavedinDoc = await Video.create({
-            videoFile: video.url,
-            thumbnail: thumbnail.url,
+            videoFile: video?.url,
+            thumbnail: thumbnail?.url,
             title,
             description,
             views,
@@ -86,7 +86,5 @@ export const uploadVideo = asyncHandler(async (req, res) => {
 
         throw new ApiError(500, "something went wrong while uploading the video and videos were deleted")
     }
-
-    res.status(200).json(new ApiResponse(200, video, "Video uploaded successfully"));
 
 })

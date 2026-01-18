@@ -368,7 +368,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 
     const user = await User.findByIdAndUpdate(
-        req.user?._id,
+        req.user?._id, //we check using the conditional operator
         {
             $set: {
                 fullName,
@@ -383,7 +383,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 //fetching user channel 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
-    const { username, } = req.params //req.params is something that gets you anything from the url when user is visting
+    const { username } = req.params //req.params is something that gets you anything from the url when user is visting
     if (!username.trim()) {
         throw new ApiError(400, "Username is required")
     };
